@@ -1,0 +1,50 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+np.random.seed(42)
+
+n = 100
+
+cpu_usage = np.random.uniform(50, 100, n)
+temperature = np.random.uniform(30, 85, n)
+memory_usage = np.random.uniform(60, 95, n)
+disk_activity = np.random.uniform(10, 70, n)
+
+energy_use = cpu_usage * 0.1 + np.random.uniform(5, 15, n)
+
+failure = ((cpu_usage > 90) & (temperature > 75)) | (memory_usage > 85) | (disk_activity > 60)
+failure = failure.astype(int)
+
+data = pd.DataFrame({
+    'cpu_usage': cpu_usage,
+    'temperature': temperature,
+    'memory_usage': memory_usage,
+    'disk_activity': disk_activity,
+    'energy_use': energy_use,
+    'failure': failure
+})
+
+plt.figure(figsize=(8, 6))
+plt.scatter(data['cpu_usage'], data['temperature'], c=data['failure'], cmap='coolwarm')
+plt.xlabel('CPU Usage (%)')
+plt.ylabel('Temperature (°C)')
+plt.title('CPU Usage vs Temperature for Server Failures')
+plt.colorbar(label='Failure (1 = Yes, 0 = No)')
+plt.show()
+
+X = data[['cpu_usage', 'temperature', 'memory_usage', 'disk_activity', 'energy_use']]
+y = data['failure']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Prediction Accuracy: {accuracy * 100:.2f}%")
